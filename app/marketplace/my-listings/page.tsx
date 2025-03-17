@@ -37,6 +37,19 @@ const conditions = [
   { value: "fair", label: "Used - Fair" }
 ]
 
+type Listing = {
+  id: number;
+  title: string;
+  price: number;
+  description: string;
+  image: string;
+  condition: string;
+  category: string;
+  active: boolean;
+  views: number;
+  likes: number;
+};
+
 export default function MyListingsPage() {
   const [myListings, setMyListings] = useState([
     {
@@ -65,10 +78,10 @@ export default function MyListingsPage() {
     }
   ])
 
-  const [editingListing, setEditingListing] = useState(null)
+  const [editingListing, setEditingListing] = useState<Listing | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
-  const handleEdit = (listing) => {
+  const handleEdit = (listing: Listing) => {
     setEditingListing(listing)
     setIsEditDialogOpen(true)
   }
@@ -82,11 +95,11 @@ export default function MyListingsPage() {
     setIsEditDialogOpen(false)
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: number) => {
     setMyListings(myListings.filter(listing => listing.id !== id))
   }
 
-  const toggleActive = (id) => {
+  const toggleActive = (id: number) => {
     setMyListings(myListings.map(listing =>
       listing.id === id ? { ...listing, active: !listing.active } : listing
     ))
@@ -242,11 +255,15 @@ export default function MyListingsPage() {
               <div className="grid gap-2">
                 <Label htmlFor="condition">Condition</Label>
                 <Select
-                  value={editingListing.condition.toLowerCase().replace(" - ", "-")}
-                  onValueChange={(value) => setEditingListing({
-                    ...editingListing,
-                    condition: conditions.find(c => c.value === value).label
-                  })}
+                  value={editingListing ? editingListing.condition.toLowerCase().replace(" - ", "-") : ""}
+                  onValueChange={(value) => {
+                    if (editingListing) {
+                      setEditingListing({
+                        ...editingListing,
+                        condition: conditions.find(c => c.value === value)?.label || ""
+                      });
+                    }
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -264,11 +281,15 @@ export default function MyListingsPage() {
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
-                  value={editingListing.description}
-                  onChange={(e) => setEditingListing({
-                    ...editingListing,
-                    description: e.target.value
-                  })}
+                  value={editingListing ? editingListing.description : ""}
+                  onChange={(e) => {
+                    if (editingListing) {
+                      setEditingListing({
+                        ...editingListing,
+                        description: e.target.value
+                      });
+                    }
+                  }}
                 />
               </div>
             </div>

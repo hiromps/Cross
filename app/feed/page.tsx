@@ -120,7 +120,35 @@ const users = [
   }
 ]
 
-const initialPosts = [
+const initialPosts: Array<{
+  id: number;
+  author: {
+    name: string;
+    handle: string;
+    avatar: string;
+  };
+  content: string;
+  images: string[];
+  timestamp: string;
+  stats: {
+    likes: number;
+    reposts: number;
+    comments: number;
+  };
+  isLiked: boolean;
+  isReposted: boolean;
+  comments: Array<{
+    id: number;
+    author: {
+      name: string;
+      handle: string;
+      avatar: string;
+    };
+    content: string;
+    timestamp: string;
+  }>;
+  showComments: boolean;
+}> = [
   {
     id: 1,
     author: {
@@ -209,14 +237,14 @@ const initialPosts = [
 
 export default function FeedPage() {
   const [newPost, setNewPost] = useState("")
-  const [selectedImages, setSelectedImages] = useState([])
-  const [previewImages, setPreviewImages] = useState([])
+  const [selectedImages, setSelectedImages] = useState<File[]>([])
+  const [previewImages, setPreviewImages] = useState<string[]>([])
   const [posts, setPosts] = useState(initialPosts)
-  const [newComments, setNewComments] = useState({})
+  const [newComments, setNewComments] = useState<Record<number, string>>({})
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedUser, setSelectedUser] = useState(null)
+  const [selectedUser, setSelectedUser] = useState<typeof users[0] | null>(null)
   const [localUsers, setLocalUsers] = useState(users)
-  const fileInputRef = useRef(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const filteredUsers = localUsers.filter(user => 
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -224,19 +252,16 @@ export default function FeedPage() {
     user.bio.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleImageSelect = (e) => {
-    const files = Array.from(e.target.files)
-    setSelectedImages([...selectedImages, ...files])
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedImages([...selectedImages, ...files]);
+  };
 
-    const newPreviewImages = files.map(file => URL.createObjectURL(file))
-    setPreviewImages([...previewImages, ...newPreviewImages])
-  }
-
-  const removeImage = (index) => {
-    URL.revokeObjectURL(previewImages[index])
-    setSelectedImages(selectedImages.filter((_, i) => i !== index))
-    setPreviewImages(previewImages.filter((_, i) => i !== index))
-  }
+  const removeImage = (index: number) => {
+    URL.revokeObjectURL(previewImages[index]);
+    setSelectedImages(selectedImages.filter((_, i) => i !== index));
+    setPreviewImages(previewImages.filter((_, i) => i !== index));
+  };
 
   const handlePost = () => {
     const newPostObj = {
@@ -267,7 +292,7 @@ export default function FeedPage() {
     toast.success("Post created successfully!")
   }
 
-  const handleLike = (postId) => {
+  const handleLike = (postId: number) => {
     setPosts(posts.map(post => {
       if (post.id === postId) {
         const newIsLiked = !post.isLiked
@@ -284,7 +309,7 @@ export default function FeedPage() {
     }))
   }
 
-  const handleRepost = (postId) => {
+  const handleRepost = (postId: number) => {
     setPosts(posts.map(post => {
       if (post.id === postId) {
         const newIsReposted = !post.isReposted
@@ -301,7 +326,7 @@ export default function FeedPage() {
     }))
   }
 
-  const toggleComments = (postId) => {
+  const toggleComments = (postId: number) => {
     setPosts(posts.map(post => {
       if (post.id === postId) {
         return {
@@ -313,9 +338,9 @@ export default function FeedPage() {
     }))
   }
 
-  const handleNewComment = (postId) => {
-    const commentContent = newComments[postId]
-    if (!commentContent?.trim()) return
+  const handleNewComment = (postId: number) => {
+    const commentContent = newComments[postId];
+    if (!commentContent?.trim()) return;
 
     setPosts(posts.map(post => {
       if (post.id === postId) {
@@ -328,7 +353,7 @@ export default function FeedPage() {
           },
           content: commentContent,
           timestamp: "Just now"
-        }
+        };
         return {
           ...post,
           comments: [...post.comments, newComment],
@@ -336,16 +361,16 @@ export default function FeedPage() {
             ...post.stats,
             comments: post.stats.comments + 1
           }
-        }
+        };
       }
-      return post
-    }))
+      return post;
+    }));
 
-    setNewComments({ ...newComments, [postId]: "" })
-    toast.success("Comment added successfully!")
-  }
+    setNewComments({ ...newComments, [postId]: "" });
+    toast.success("Comment added successfully!");
+  };
 
-  const handleShare = (post) => {
+  const handleShare = (post: { id: number; author: { name: string; }; content: string; }) => {
     const shareUrl = `${window.location.origin}/post/${post.id}`
     
     const shareData = {
@@ -370,7 +395,7 @@ export default function FeedPage() {
       toast.success("Opening email client...")
     }
 
-    const handleSocialShare = (platform) => {
+    const handleSocialShare = (platform: 'twitter' | 'facebook' | 'linkedin') => {
       let shareUrl = ''
       switch (platform) {
         case 'twitter':
@@ -420,7 +445,7 @@ export default function FeedPage() {
     )
   }
 
-  const handleFollowUser = (userId) => {
+  const handleFollowUser = (userId: number) => {
     setLocalUsers(localUsers.map(user => {
       if (user.id === userId) {
         const newIsFollowing = !user.isFollowing
@@ -435,9 +460,10 @@ export default function FeedPage() {
     toast.success(`${selectedUser?.isFollowing ? 'Unfollowed' : 'Followed'} successfully!`)
   }
 
-  const handleUserClick = (user) => {
-    const foundUser = localUsers.find(u => u.id === user.id)
-    setSelectedUser(foundUser)
+  const handleUserClick = (user: { id: number; } | undefined) => {
+    if (!user) return;
+    const foundUser = localUsers.find(u => u.id === user.id);
+    setSelectedUser(foundUser || null);
   }
 
   return (
