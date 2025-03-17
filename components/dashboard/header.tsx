@@ -1,8 +1,10 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Bell, Calendar, Mail, Moon, Search, Sun, User } from "lucide-react"
+import { Bell, Calendar, Mail, Moon, Search, Sun, User, LogOut } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
+import { User as SupabaseUser } from '@supabase/supabase-js'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,9 +16,52 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { supabase } from "@/lib/supabase"
+import { useState } from "react"
 
-export function Header() {
+interface HeaderProps {
+  user?: SupabaseUser | null;
+}
+
+export function Header({ user }: HeaderProps) {
   const { setTheme } = useTheme()
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+
+  // ユーザー名を取得（メールアドレスの@前の部分またはユーザーメタデータから）
+  const getUserName = () => {
+    if (!user) return 'User'
+    
+    if (user.user_metadata?.name) {
+      return user.user_metadata.name
+    }
+    
+    if (user.email) {
+      return user.email.split('@')[0]
+    }
+    
+    return 'User'
+  }
+
+  // ユーザーのイニシャルを取得
+  const getUserInitials = () => {
+    const name = getUserName()
+    return name.charAt(0).toUpperCase()
+  }
+
+  // ログアウト処理
+  const handleSignOut = async () => {
+    try {
+      setIsLoading(true)
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      router.push('/login')
+    } catch (error) {
+      console.error('ログアウトエラー:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <motion.header 
@@ -78,15 +123,16 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop" />
+                  <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
                   <AvatarFallback>
-                    <User className="h-4 w-4" />
+                    {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>{getUserName()}</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-xs text-gray-500 font-normal">{user?.email}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
@@ -101,8 +147,13 @@ export function Header() {
                 Messages
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600 dark:text-red-400">
-                Sign out
+              <DropdownMenuItem 
+                className="text-red-600 dark:text-red-400"
+                onClick={handleSignOut}
+                disabled={isLoading}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                {isLoading ? 'ログアウト中...' : 'ログアウト'}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

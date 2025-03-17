@@ -13,10 +13,11 @@ import {
   LayoutDashboard,
   User,
   Hash,
-  ShoppingBag
+  ShoppingBag,
+  LogOut
 } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -40,6 +41,15 @@ const otherMenuItems = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    // ログアウト処理
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('isAuthenticated')
+    }
+    router.push('/login')
+  }
 
   return (
     <motion.div
@@ -93,6 +103,14 @@ export function Sidebar() {
                 </Link>
               </Button>
             ))}
+            <Button
+              variant="ghost"
+              className="justify-start text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-3" />
+              <span>ログアウト</span>
+            </Button>
           </nav>
         </div>
       </ScrollArea>
