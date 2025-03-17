@@ -16,12 +16,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { supabase } from "@/lib/supabase"
+import { createClient } from '@supabase/supabase-js'
 import { useState } from "react"
 
 interface HeaderProps {
   user?: SupabaseUser | null;
 }
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables')
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export function Header({ user }: HeaderProps) {
   const { setTheme } = useTheme()
