@@ -371,46 +371,48 @@ export default function FeedPage() {
   };
 
   const handleShare = (post: { id: number; author: { name: string; }; content: string; }) => {
-    const shareUrl = `${window.location.origin}/post/${post.id}`
-    
+    if (typeof window === 'undefined') return null;
+
+    const shareUrl = `${window.location.origin}/post/${post.id}`;
+
     const shareData = {
       title: `Post by ${post.author.name}`,
       text: post.content,
       url: shareUrl
-    }
+    };
 
     const handleCopyLink = async () => {
       try {
-        await navigator.clipboard.writeText(shareUrl)
-        toast.success("Link copied to clipboard!")
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Link copied to clipboard!");
       } catch (err) {
-        toast.error("Failed to copy link")
+        toast.error("Failed to copy link");
       }
-    }
+    };
 
     const handleEmailShare = () => {
-      const subject = encodeURIComponent(`Check out this post by ${post.author.name}`)
-      const body = encodeURIComponent(`${post.content}\n\nView post: ${shareUrl}`)
-      window.open(`mailto:?subject=${subject}&body=${body}`)
-      toast.success("Opening email client...")
-    }
+      const subject = encodeURIComponent(`Check out this post by ${post.author.name}`);
+      const body = encodeURIComponent(`${post.content}\n\nView post: ${shareUrl}`);
+      window.open(`mailto:?subject=${subject}&body=${body}`);
+      toast.success("Opening email client...");
+    };
 
     const handleSocialShare = (platform: 'twitter' | 'facebook' | 'linkedin') => {
-      let shareUrl = ''
+      let shareUrl = '';
       switch (platform) {
         case 'twitter':
-          shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(post.content)}&url=${encodeURIComponent(shareUrl)}`
-          break
+          shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(post.content)}&url=${encodeURIComponent(shareUrl)}`;
+          break;
         case 'facebook':
-          shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
-          break
+          shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+          break;
         case 'linkedin':
-          shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`
-          break
+          shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+          break;
       }
-      window.open(shareUrl, '_blank', 'width=600,height=400')
-      toast.success(`Sharing on ${platform}...`)
-    }
+      window.open(shareUrl, '_blank', 'width=600,height=400');
+      toast.success(`Sharing on ${platform}...`);
+    };
 
     return (
       <DropdownMenu>
@@ -442,8 +444,8 @@ export default function FeedPage() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    )
-  }
+    );
+  };
 
   const handleFollowUser = (userId: number) => {
     setLocalUsers(localUsers.map(user => {
